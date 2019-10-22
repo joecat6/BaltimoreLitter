@@ -1,0 +1,48 @@
+---
+title: "Homework 6: Baltimore Litter Trash App"
+output:
+  html_document:
+    highlight: tango
+    number_sections: no
+    theme: cosmo
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r}
+load('litter.Rdata')
+```
+
+#Using 311 Data for the Application
+
+We can utilize Baltimore's latest 311 database to inform when to alert people when they are in litter "hot-spots". This can be used to remind users of the game to be mindful of their trash, or to alert people that they are in areas where there are opportunities for big points! 
+
+Below, I have accessed the latest reports of a "Dirty Street" or "Dirty Alley" from the 311 database and created a heatmap over the city of Baltimore of the volume of reports by location in the city.
+
+```{r message=F, warning=F}
+library(maps)
+library(tidyverse)
+library(ggmap)
+library(ggrepel)
+md <- filter(map_data("state"), region == "maryland")
+md_county <- filter(map_data("county"), region=="maryland")
+bmore <- filter(md_county, subregion=="baltimore city")
+lat.lim <- c(min(bmore$lat, na.rm=TRUE),
+             max(bmore$lat, na.rm=TRUE))
+lon.lim <- c(min(bmore$long, na.rm=TRUE),
+             max(bmore$long, na.rm=TRUE))
+bmore_map <- ggplot(data=bmore, mapping=aes(x=long, y=lat)) + 
+  coord_fixed(1) +
+  geom_polygon(color="black", fill="gray") 
+bmore_map +
+  xlim(lon.lim) + ylim(lat.lim) +
+  stat_density2d(data=litter.dat, mapping=aes(x=Longitude, y=Latitude, fill=..level.., alpha=0.25),
+                 size=0.01, bins=100, geom="polygon") +
+  labs(title="Heat Map of Baltimore 311 Dirty Street/Alley Reports")
+```
+
+#Data Collection from users
+
+One of the primary purposes of the app will be to collect data from the users to gather even more information of areas that need cleaning up! The app will provide an easy way to report information similar to that displayed above, and more! In addition to reporting locations of dirty alleys or streets, the app will award points to users who identify the locations of trash cans and trash cans that are overflowing. A major feature of the app will be to notify users where trash cans are so that they can throw away their trash. Since this data is not easily accessible, it will be up to users to provide information for the app. Below I have reproduced the plot above, with a point for a trash can near JHSPH. The point can be colored based on whether the can is overflowing or not.
