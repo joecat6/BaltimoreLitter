@@ -64,13 +64,19 @@ bmore_map +
 
 ## Liquor stores
 
-```{r message=F, warning=F}
-liquor = read.csv('Liquor_Stores.csv')
+Liquor container waste is a widely recognized contributor to municipal litter. In particular some communities have looked to ban single-serving liquor containers (https://www.telegram.com/news/20190609/communities-seek-ways-to-nip-liquor-bottle-litter-in-bud). With regard to litter, the City of Oakland has grouped liquor stores along with fast food businesses, convenience markets, and gasoline station markets, targeting all of them with an excess litter fee under Ordinance 12727 (https://www.oaklandca.gov/services/finance-dept-liens-and-excess-litter-fee).
 
+Baltimore City makes available a data set describing liquor license granted to liquor stores from 2003 to 2018 (https://data.baltimorecity.gov/City-Services/Liquor-Stores/hew9-k3x4). It is unclear whether the data set is exhaustive, but it includes information on 4,148 licenses granted to 306 unique locations. Reported variables include licensee name, owner name, corporation name, license type, address, and geolocation.
+
+What will be most useful for our app is the address and geolocation. With this information, we can monitor the link between garbage location and liquor store location, as well as send trash disposal reminders to customers exiting liquor stores. This data is not ideal because the locations may be out of date, but it is a good start.
+
+```{r, cache=T, warning=F, message=F}
+require(ggmap)
+
+liquor = read.csv('Liquor_Stores.csv')
 liquor$coord = NA
 liquor$lat = NA
 liquor$lon = NA
-
 for(i in 1:nrow(liquor)){
   liquor$coord[i] = strsplit(toString(liquor$Location.1[i],sep=''), 
                            "[[:digit:]]{5}[[:space:]][(]")[[1]][2]
@@ -83,12 +89,48 @@ if (!is.na(liquor$coord)[i]) {
 }
 
 
+lat.lim <- c(min(liquor$lat, na.rm=TRUE),
+             max(liquor$lat, na.rm=TRUE))
+lon.lim <- c(min(liquor$lon, na.rm=TRUE),
+             max(liquor$lon, na.rm=TRUE))
 p <- ggmap(get_stamenmap(bbox = c(left = -76.72, bottom = 39.2,
                                   right = -76.5, top=39.4),
                          zoom = 12, scale = 5,
                          maptype ='terrain',
                          color = 'color'))
-
 p = p+ geom_point(aes(x = lon, y = lat), data = liquor, size = 1, col='red')
-p
+
+p + ggtitle('Liquor store locations in Baltimore')
 ```
+
+We may be interested in which corporations have been granted the most licenses, since we may reach out to them for coupon partnerships or for their support in trash management.
+
+```{r}
+sort(table(liquor$CorpName),decreasing=TRUE)[1:10]
+```
+
+The data set has a "description" column, which contains only two levels.
+
+```{r}
+pie(table(liquor$Description), main='Liquor store license description')
+```
+
+Some people have unique names which make them easy to find online, and therefore easy to contact. In fact, about 15% of the licenses were given to owners whose first names (for current purposes, defined as part of name before first space) do not appear in the R babynames dataset, which lists all names given to at least five babies in one year from 1880 to 2017 according to Social Security Administration records.
+
+```{r}
+require(babynames)
+liquor$nameInCensus = NA
+namesInCensus = toupper(unique(babynames$name))
+for(i in 1:nrow(liquor)){
+  name = ifelse(grepl('[[:space:]]', toString(liquor$LicenseeFirstName[i])),
+                strsplit(toString(liquor$LicenseeFirstName[i]), '[[:space:]]')[[1]][1],
+                toString(liquor$LicenseeFirstName[i]))
+  liquor$nameInCensus[i] = name %in% namesInCensus
+}
+mean(liquor$nameInCensus)
+```
+
+![](pepper.jpg)
+
+
+Here is President and COO of Northern Pharmacy, Pepper K. Mintz.
