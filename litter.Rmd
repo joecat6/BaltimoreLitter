@@ -25,7 +25,6 @@ Below, I have accessed the latest reports of a "Dirty Street" or "Dirty Alley" f
 library(maps)
 library(tidyverse)
 library(ggmap)
-library(ggrepel)
 md <- filter(map_data("state"), region == "maryland")
 md_county <- filter(map_data("county"), region=="maryland")
 bmore <- filter(md_county, subregion=="baltimore city")
@@ -33,24 +32,39 @@ lat.lim <- c(min(bmore$lat, na.rm=TRUE),
              max(bmore$lat, na.rm=TRUE))
 lon.lim <- c(min(bmore$long, na.rm=TRUE),
              max(bmore$long, na.rm=TRUE))
-bmore_map <- ggplot(data=bmore, mapping=aes(x=long, y=lat)) + 
-  coord_fixed(1) +
-  geom_polygon(color="black", fill="gray") 
+bmore_map <-ggmap(get_stamenmap(bbox = c(left = lon.lim[1], bottom = lat.lim[1],
+                                         right = lon.lim[2], top=lat.lim[2]),
+                         zoom = 12, scale = 5,
+                         maptype ='terrain',
+                         color = 'color')) 
 bmore_map +
-  xlim(lon.lim) + ylim(lat.lim) +
-  stat_density2d(data=litter.dat, mapping=aes(x=Longitude, y=Latitude, fill=..level.., alpha=0.25),
+  stat_density2d(data=litter.dat, mapping=aes(x=Longitude, y=Latitude, fill=..level..), alpha=0.1,
                  size=0.01, bins=100, geom="polygon") +
-  labs(title="Heat Map of Baltimore 311 Dirty Street/Alley Reports")
+  labs(title="Heat Map of Baltimore 311 Dirty Street/Alley Reports",
+       fill="Reports")
 ```
 
 #Data Collection from users
 
 One of the primary purposes of the app will be to collect data from the users to gather even more information of areas that need cleaning up! The app will provide an easy way to report information similar to that displayed above, and more! In addition to reporting locations of dirty alleys or streets, the app will award points to users who identify the locations of trash cans and trash cans that are overflowing. A major feature of the app will be to notify users where trash cans are so that they can throw away their trash. Since this data is not easily accessible, it will be up to users to provide information for the app. Below I have reproduced the plot above, with a point for a trash can near JHSPH. The point can be colored based on whether the can is overflowing or not.
 
+```{r message=F, warning=F}
+trash_cans <- data.frame(lat=c(39.299751,39.285668),
+                         lon=c(-76.590883,-76.590464),
+                         overflow=c("Not Overflowing","Overflowing"))
+bmore_map +
+  stat_density2d(data=litter.dat, mapping=aes(x=Longitude, y=Latitude, fill=..level..), alpha=0.1,
+                 size=0.01, bins=100, geom="polygon") +
+  geom_point(data=trash_cans, aes(x=lon, y=lat, color=overflow), shape=15) +
+  scale_color_manual(values=c("green", "red")) +
+  labs(title="Heat Map of Baltimore 311 Dirty Street/Alley Reports",
+       color="Trash Cans",
+       fill="Reports")
+```
 
 ## Liquor stores
 
-```{r}
+```{r message=F, warning=F}
 liquor = read.csv('Liquor_Stores.csv')
 
 liquor$coord = NA
@@ -68,15 +82,6 @@ if (!is.na(liquor$coord)[i]) {
   }
 }
 
-library(maps)
-library(tidyverse)
-library(ggmap)
-library(ggrepel)
-
-lat.lim <- c(min(liquor$lat, na.rm=TRUE),
-             max(liquor$lat, na.rm=TRUE))
-lon.lim <- c(min(liquor$lon, na.rm=TRUE),
-             max(liquor$lon, na.rm=TRUE))
 
 p <- ggmap(get_stamenmap(bbox = c(left = -76.72, bottom = 39.2,
                                   right = -76.5, top=39.4),
@@ -85,4 +90,5 @@ p <- ggmap(get_stamenmap(bbox = c(left = -76.72, bottom = 39.2,
                          color = 'color'))
 
 p = p+ geom_point(aes(x = lon, y = lat), data = liquor, size = 1, col='red')
+p
 ```
