@@ -21,7 +21,7 @@ We can utilize Baltimore's latest 311 database to inform when to alert people wh
 
 Below, I have accessed the latest reports of a "Dirty Street" or "Dirty Alley" from the 311 database and created a heatmap over the city of Baltimore of the volume of reports by location in the city.
 
-```{r message=F, warning=F}
+```{r cache=T, message=F, warning=F}
 library(maps)
 library(tidyverse)
 library(ggmap)
@@ -48,7 +48,7 @@ bmore_map +
 
 One of the primary purposes of the app will be to collect data from the users to gather even more information of areas that need cleaning up! The app will provide an easy way to report information similar to that displayed above, and more! In addition to reporting locations of dirty alleys or streets, the app will award points to users who identify the locations of trash cans and trash cans that are overflowing. A major feature of the app will be to notify users where trash cans are so that they can throw away their trash. Since this data is not easily accessible, it will be up to users to provide information for the app. Below I have reproduced the plot above, with a point for a trash can near JHSPH. The point can be colored based on whether the can is overflowing or not.
 
-```{r message=F, warning=F}
+```{r cache=T, message=F, warning=F}
 trash_cans <- data.frame(lat=c(39.299751,39.285668),
                          lon=c(-76.590883,-76.590464),
                          overflow=c("Not Overflowing","Overflowing"))
@@ -134,3 +134,27 @@ mean(liquor$nameInCensus)
 
 
 Here is President and COO of Northern Pharmacy, Pepper K. Mintz.
+
+## Product Plan
+
+The product we are proposing is a mobile game application. The game would encourage users to engage with and provide data about litter "hot-spots" in Baltimore city. The app would award points for certain actions by the user.
+
+* Identifying trash cans (extra points for previously unidentified cans)
+* Identifying litter
+* Picking up existing litter
+* Throwing away own trash
+
+These events will be confirmed by photograph and geolocation from the user's phone. To identify a trash can, the user must send a photo from their location. This will mean there will have to be some machine learning training to identify valid trash cans from photos. The geolocation will be used to set the location of the trash can in the system. When picking up litter or throwing away trash, the user will have to send a photo of the action, and the action would have to occur near a identified trash can in the system. Points will be redeemable for eco-friendly products such as reusable water bottles and grocery bags. Users will also be able to organize into teams and compete for weekly prizes. Data will also be recorded for the top individuals and organizations over shor periods of time.
+
+In order to build this app, we will need an algorithm to identify valid trash cans. This may be difficult, because trash cans can come in many shapes and sizes. Outside of this, the app's infrastructure will be fairly simple. It will consist of a map of the city, geolocation data of spots with litter (curated from the 311 database and user input), geolocation data of trash can locations, and geolocation data of various types of buisinesses. 
+
+The target audience of the app will be the citizenry of Baltimore. It will be sustained by the support of businesses and organizations with a vested interest in the goal of the app: to curate data on litter in the city of Baltimore and to promote the citizenry to help keep these areas litter-free. We will ask local businesses and organizations to donate funding and goods that can be used as prizes (such as coupons to local establishments). The potential failures of the app will be a lack of interest or users. Another potential failure would be users trying to "game" the app by claiming they threw away trash when they really just left it on the ground. This is why the functionality of identifying user's photos will be important.
+
+In order to create and run the app for a year, we will need a small team of developers, server space for the data, and a team of partners to provide funding and prizes. 
+
+### Estimates of cost
+
+* Server: $2,000
+* Developers: $100,000
+* Partnerships/Prizes: $23,000
+
