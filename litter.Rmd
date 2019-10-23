@@ -15,7 +15,7 @@ output:
 load('litter.Rdata')
 ```
 
-#Using 311 Data for the Application
+# Using 311 Data for the Application  
 
 We can utilize Baltimore's latest 311 database to inform when to alert people when they are in litter "hot-spots". This can be used to remind users of the game to be mindful of their trash, or to alert people that they are in areas where there are opportunities for big points! 
 
@@ -44,7 +44,7 @@ bmore_map +
        fill="Reports")
 ```
 
-#Data Collection from users
+# Data Collection from users  
 
 One of the primary purposes of the app will be to collect data from the users to gather even more information of areas that need cleaning up! The app will provide an easy way to report information similar to that displayed above, and more! In addition to reporting locations of dirty alleys or streets, the app will award points to users who identify the locations of trash cans and trash cans that are overflowing. A major feature of the app will be to notify users where trash cans are so that they can throw away their trash. Since this data is not easily accessible, it will be up to users to provide information for the app. Below I have reproduced the plot above, with a point for a trash can near JHSPH. The point can be colored based on whether the can is overflowing or not.
 
@@ -61,6 +61,43 @@ bmore_map +
        color="Trash Cans",
        fill="Reports")
 ```
+
+
+# Providing safe routes for users to find the nearby trash cans   
+
+Our app will provide routes to users, guiding them to the nearest trash cans. One of the most important factors to consider when designing routes is *safety*. *No litter behavior is worth dying for!* 
+
+So here we use the victim based crime data from Baltimore city’s Open Baltimore website to show the density of crime in Baltimore city.(https://data.baltimorecity.gov/Public-Safety/BPD-Part-1-Victim-Based-Crime-Data/wsfq-mvij/data). This data will be used when designing algorithm for routes, so that users can avoid danger areas when litter. The BPD Part 1 victim based crime data is updated every Monday with a nine day time lag.        
+
+
+```{r cache=T, message=F, warning=F}
+library(readr)
+## load data
+d <- read_csv("BPD_Part_1_Victim_Based_Crime_Data.csv")
+## plot
+md <- filter(map_data("state"), region == "maryland")
+md_county <- filter(map_data("county"), region=="maryland")
+bmore <- filter(md_county, subregion=="baltimore city")
+lat.lim <- c(min(bmore$lat, na.rm=TRUE),
+             max(bmore$lat, na.rm=TRUE))
+lon.lim <- c(min(bmore$long, na.rm=TRUE),
+             max(bmore$long, na.rm=TRUE))
+bmore_map <-ggmap(get_stamenmap(bbox = c(left = lon.lim[1], bottom = lat.lim[1],
+                                         right = lon.lim[2], top=lat.lim[2]),
+                         zoom = 12, scale = 5,
+                         maptype ='terrain',
+                         color = 'color')) 
+bmore_map +
+  stat_density2d(data=d, mapping=aes(x=Longitude, y=Latitude, fill=..level..), alpha=0.1,
+                 size=0.01, bins=100, geom="polygon") +
+  labs(title="Heat Map of crime in Baltimore",
+       fill="Reports")
+```
+
+Comparing to the litter “hot-spots” from above, we can see that areas around inner harbor have higher crime rate and are less "dirty" according to the 311 data, which is reasonable since the central area have more city cleaners and a higher population density (especially tourists) that lead to higher crime rates. So we would avoid guiding users to harbor east when recommending nearby trash cans.   
+
+One interesting point is that around the JHSPH - Patterson Park area, the highest crime rate & “Dirty Street” overlap almost perfectly. Further investigation should be conducted to find out more about that area.   
+
 
 ## Liquor stores
 
@@ -134,6 +171,7 @@ mean(liquor$nameInCensus)
 
 
 Here is President and COO of Northern Pharmacy, Pepper K. Mintz.
+
 
 ## Product Plan
 
